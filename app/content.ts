@@ -127,6 +127,11 @@ export const reels = [
   { src: "/media/reels/reel-3.mp4", poster: "/media/reels/reel-3.webp", title: "Grounds", place: "Landscapes" },
   { src: "/media/reels/reel-4.mp4", poster: "/media/reels/reel-4.webp", title: "Glass & Sky", place: "Cityscapes" },
   { src: "/media/reels/reel-5.mp4", poster: "/media/reels/reel-5.webp", title: "Winter Street", place: "Cityscapes" },
+  { src: "/media/reels/reel-1.mp4", poster: "/media/reels/reel-1.webp", title: "Riverside", place: "Landscapes" },
+  { src: "/media/reels/reel-2.mp4", poster: "/media/reels/reel-2.webp", title: "Texture Study", place: "Details" },
+  { src: "/media/reels/reel-3.mp4", poster: "/media/reels/reel-3.webp", title: "Grounds", place: "Landscapes" },
+  { src: "/media/reels/reel-4.mp4", poster: "/media/reels/reel-4.webp", title: "Glass & Sky", place: "Cityscapes" },
+  { src: "/media/reels/reel-5.mp4", poster: "/media/reels/reel-5.webp", title: "Winter Street", place: "Cityscapes" },
 ];
 
 export const nav = [
