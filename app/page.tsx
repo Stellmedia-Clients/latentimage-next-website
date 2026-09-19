@@ -12,6 +12,7 @@ import {
   philosophy,
   sectors,
   services,
+  statementImage,
   studio,
   studioImage,
 } from "./content";
@@ -31,6 +32,24 @@ export default function Home() {
           <div className="shell grid gap-10 md:grid-cols-12 md:gap-12">
             <Reveal className="md:col-span-4">
               <p className="type-caption text-bronze">The Studio</p>
+              {/* Sits under the eyebrow rather than in a column of its own, so
+                  the existing 4/8 split and the stats grid on the right are
+                  left untouched. */}
+              <div
+                className="relative mt-8 w-full overflow-hidden bg-stone"
+                style={{ aspectRatio: "4 / 5" }}
+              >
+                <Image
+                  src={statementImage.src}
+                  alt={statementImage.alt}
+                  fill
+                  quality={75}
+                  placeholder={blurFor(statementImage.src) ? "blur" : "empty"}
+                  blurDataURL={blurFor(statementImage.src)}
+                  sizes="(max-width: 768px) 100vw, 30vw"
+                  className="object-cover"
+                />
+              </div>
             </Reveal>
             <div className="md:col-span-8">
               <Reveal>
