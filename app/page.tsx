@@ -7,11 +7,13 @@ import FilmStrip from "./components/FilmStrip";
 import Marquee from "./components/Marquee";
 import WorkGallery from "./components/WorkGallery";
 import {
+  blurFor,
   categories,
   philosophy,
   sectors,
   services,
   studio,
+  studioImage,
 } from "./content";
 
 const year = new Date().getFullYear();
@@ -125,16 +127,37 @@ export default function Home() {
         </section>
 
         {/* ── Philosophy ───────────────────────────────────────────────── */}
+        {/* FilmStrip sits on the right here, not the left: the studio plate now
+            occupies the left column, and the strip is a 84px-wide absolute
+            overlay at the viewport edge that would collide with it on mid-size
+            screens (the shell's 2.5rem gutter is narrower than the strip). */}
         <section id="studio" className="section-y relative overflow-hidden bg-greige">
-          <FilmStrip side="left" />
-          <div className="shell relative grid gap-12 md:grid-cols-12">
+          <FilmStrip side="right" />
+          <div className="shell relative grid items-start gap-12 md:grid-cols-12">
             <div className="md:col-span-5">
               <Reveal>
-                <p className="type-caption mb-4 text-bronze">{philosophy.eyebrow}</p>
-                <p className="type-heading text-balance">{philosophy.lead}</p>
+                <div
+                  className="relative w-full overflow-hidden bg-stone"
+                  style={{ aspectRatio: "4 / 5" }}
+                >
+                  <Image
+                    src={studioImage.src}
+                    alt={studioImage.alt}
+                    fill
+                    quality={75}
+                    placeholder={blurFor(studioImage.src) ? "blur" : "empty"}
+                    blurDataURL={blurFor(studioImage.src)}
+                    sizes="(max-width: 768px) 100vw, 40vw"
+                    className="object-cover"
+                  />
+                </div>
               </Reveal>
             </div>
             <div className="md:col-span-6 md:col-start-7">
+              <Reveal>
+                <p className="type-caption mb-4 text-bronze">{philosophy.eyebrow}</p>
+                <p className="type-heading mb-10 text-balance">{philosophy.lead}</p>
+              </Reveal>
               {philosophy.paragraphs.map((para, i) => (
                 // Spacing lives on the Reveal wrapper: the <p> is an only child,
                 // so `last:` on it would match every paragraph and zero them all.
@@ -197,7 +220,7 @@ export default function Home() {
                 src="/logo.png"
                 alt={studio.name}
                 width={132}
-                height={110}
+                height={106}
                 quality={90}
                 className="h-auto w-[104px] invert"
               />
