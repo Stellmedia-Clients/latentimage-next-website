@@ -12,6 +12,22 @@ gsap.registerPlugin(useGSAP, ScrollTrigger);
 /**
  * Horizontal reel gallery.
  *
+ * Card sizing resolves a three-way squeeze. Under a ~290px header inside a
+ * 100svh section, a card cannot at the same time (a) fit vertically, (b) stay
+ * 9:16, and (c) leave five of them wide enough to overflow a 1440px viewport —
+ * below roughly 760px of viewport height, something has to give. The old
+ * `h-[62vh]` bought (b) and (c) by breaking (a): it measured against the whole
+ * viewport rather than `100svh - header`, so the card outgrew its container
+ * and the section's `overflow-hidden` sliced the captions off the bottom.
+ *
+ * So: height stretches to whatever the flex column actually leaves (a holds,
+ * nothing is ever clipped), `aspect-[9/16]` derives the width from it, and
+ * `md:min-w-[16rem]` floors that width so the track still overflows and the
+ * pinned scrub below still has somewhere to travel (c holds). Aspect is the
+ * one that yields: on short viewports the cards land nearer 0.7 than 0.5625
+ * and the poster/video `object-cover` crops a little. On tall viewports the
+ * derived width is already past the floor, so none of this binds.
+ *
  * Desktop (>=768px, motion allowed): the section pins and the track is
  * scrubbed right-to-left by vertical scroll — the GreenSock horizontal-gallery
  * pattern. Distance is measured from the track's real scrollWidth and
@@ -40,7 +56,10 @@ export default function ReelsRail() {
           const el = track.current;
           if (!el) return;
 
-          // How far the track must travel for its last card to reach the right edge.
+          // How far the track must travel for its last card to reach the right
+          // edge. Card width is derived from card height, so scrollWidth moves
+          // with viewport *height* as well as width — `invalidateOnRefresh`
+          // below is what keeps this honest across resizes.
           const distance = () => Math.max(0, el.scrollWidth - window.innerWidth + 96);
 
           gsap.to(el, {
@@ -69,7 +88,7 @@ export default function ReelsRail() {
     if (!v) return;
     v.play().then(
       () => setActive(i),
-      () => {},
+      () => { },
     );
   };
 
@@ -115,16 +134,16 @@ export default function ReelsRail() {
         </div>
       </div>
 
-      <div className="md:flex md:min-h-0 md:flex-1 md:items-center">
+      <div className="md:flex md:min-h-0 md:flex-1 md:items-stretch">
         <div
           ref={track}
-          className="no-scrollbar flex gap-4 overflow-x-auto px-6 py-10 md:gap-6 md:overflow-visible md:px-12 md:py-0"
+          className="no-scrollbar flex gap-4 overflow-x-auto px-6 py-10 md:gap-6 md:overflow-visible md:px-12 md:py-8"
           style={{ scrollSnapType: "x mandatory" }}
         >
           {reels.map((reel, i) => (
             <article
-              key={reel.src}
-              className="group relative aspect-[9/16] w-[min(72vw,17rem)] shrink-0 overflow-hidden rounded-xl bg-charcoal md:h-[62vh] md:w-auto"
+              key={`${reel.src}-${i}`}
+              className="group relative aspect-[9/16] w-[min(72vw,17rem)] shrink-0 overflow-hidden rounded-xl bg-charcoal md:w-auto md:min-w-[16rem]"
               style={{ scrollSnapAlign: "center" }}
               onMouseEnter={canHover === true ? () => play(i) : undefined}
               onMouseLeave={canHover === true ? () => stop(i) : undefined}
@@ -159,9 +178,8 @@ export default function ReelsRail() {
                   loading="lazy"
                   quality={75}
                   sizes="(max-width: 768px) 72vw, 340px"
-                  className={`object-cover transition-opacity duration-700 ${
-                    active === i ? "opacity-0" : "opacity-100"
-                  }`}
+                  className={`object-cover transition-opacity duration-700 ${active === i ? "opacity-0" : "opacity-100"
+                    }`}
                 />
               </div>
 
