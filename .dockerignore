@@ -1,0 +1,64 @@
+# Mirrors .gitignore where it matters, but it is NOT the same list and cannot be
+# replaced by one: Docker ignores .gitignore entirely, and the builder stage's
+# `COPY . .` copies the working tree as it is on disk — including files git is
+# ignoring. Anything left out here ends up in the build context, and anything
+# under public/ is then copied into the runtime image and served publicly.
+
+# Dependencies and build output are rebuilt inside the image. Copying the host's
+# node_modules would also overwrite the deps stage's `npm ci` result with
+# binaries built for the host's libc.
+node_modules
+.next
+out
+build
+
+# Secrets. No .env file is committed today, but one created locally must never
+# reach an image layer — layers survive deletion and travel with the image.
+.env
+.env.*
+*.pem
+
+# ---------------------------------------------------------------------------
+# Video masters. These are the reason this file exists.
+#
+# public/media/ holds both the committed web encodes (hero-*.mp4, reels/) and
+# the multi-hundred-megabyte masters they were cut from. The masters are in
+# .gitignore, so they are absent from a fresh clone but present on any machine
+# that ran the media seed — including this one, where the banner master alone is
+# 123 MB. Without the two patterns below that file is copied into the build
+# context, baked into the runtime image via `COPY /app/public ./public`, and
+# served at /media/Desktop%20Banner_1080.mp4.
+#
+# Keep in sync with .gitignore and with the OUTPUTS table in scripts/seed-media.mjs.
+public/media/*_source.*
+public/media/Desktop Banner_1080.mp4
+
+# Brand source masters (.eps, full-resolution logo art). Never served — the
+# site uses public/logo.png and public/logo-mark.png.
+design
+
+# ---------------------------------------------------------------------------
+# Tooling and metadata with no role at runtime.
+.git
+.gitignore
+.agents
+.claude
+skills-lock.json
+AGENTS.md
+CLAUDE.md
+README.md
+*.tsbuildinfo
+next-env.d.ts
+
+# The deploy definitions themselves. Including them would invalidate the build
+# cache on every edit to a file the image never reads.
+Dockerfile
+.dockerignore
+docker-compose.yml
+.woodpecker.yml
+
+# Editor / OS noise
+.DS_Store
+.vscode
+.idea
+npm-debug.log*

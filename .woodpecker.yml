@@ -1,0 +1,104 @@
+# Pull the new commit onto the server, rebuild the image, restart the app.
+# There is no install/lint/build step here: `docker compose up -d --build` runs
+# the real build inside the image, so a broken build fails this step anyway.
+#
+# There is no migration or seed step, because the site holds no runtime state:
+# copy lives in app/content.ts and the videos in public/media, both baked into
+# the image at build time. A content change is a commit, and this pipeline is
+# the whole of what deploys it.
+#
+# Note what that means for media: scripts/seed-media.mjs is a LOCAL authoring
+# tool, not a deploy step. Its output has to be committed, or the rebuild below
+# ships the previous encodes.
+when:
+  - event: push
+    branch: main
+
+# Nothing here reads the repository contents — the step drives the checkout that
+# already lives on the server — so the default clone is a redundant credentialed
+# clone of a private repo.
+skip_clone: true
+
+steps:
+  # Runs on the same host as the deployed app: mounts the host docker socket
+  # plus the live checkout at /opt/apps/... so it can pull and rebuild in
+  # place, no registry involved. Requires this repo to be marked "Trusted"
+  # in Woodpecker's project settings, since host volume mounts are otherwise
+  # blocked for untrusted repos. Note the cost of that socket: this step can
+  # do anything root on the host can do.
+  #
+  # Both paths below are literal because Woodpecker does not interpolate step
+  # environment into `volumes:`. The checkout directory name doubles as the
+  # compose project name, so pointing this at a different directory would leave
+  # the container started from the old one running and untouched.
+  #
+  # This stack declares no volumes, so there is no persistent state for a bad
+  # deploy to damage: the worst case is that the site serves the previous image
+  # (build failure) or nothing (healthcheck failure), both recoverable by
+  # rebuilding. See the rollback note below.
+  deploy:
+    image: docker:27-cli
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /opt/apps/latentimage-next-website:/opt/apps/latentimage-next-website
+    environment:
+      # Key for pulling from GitHub. The server's system user already has one;
+      # this is a separate copy, because the step runs in a container that does
+      # not share that user's ~/.ssh. Must be a key authorised on this GitHub
+      # repo — if the pull fails with "Permission denied (publickey)" rather
+      # than a name-resolution error, this secret is the wrong key.
+      #
+      # The alternative is to drop this secret and bind-mount that user's .ssh
+      # read-only at some other path, then `cp -r` it into /root/.ssh and chown
+      # it to root — which also brings the Host alias below along for free. The
+      # copy is not optional: ssh refuses a config file owned by another uid
+      # with "Bad owner or permissions".
+      SSH_KEY:
+        from_secret: woodpecker-deploy-key
+    commands:
+      - apk add --no-cache git openssh-client
+      - git config --global --add safe.directory /opt/apps/latentimage-next-website
+      - install -m 700 -d ~/.ssh
+      # printf, not echo: a key pasted without a trailing newline is rejected
+      # by ssh with "invalid format".
+      - printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
+      - chmod 600 ~/.ssh/id_ed25519
+      # The checkout's `origin` on the server is git@github-aidev:... —
+      # `github-aidev` is an SSH alias from the system user's ~/.ssh/config, not
+      # a real hostname, and this container has no such config. Without the
+      # block below the pull dies with "Could not resolve hostname
+      # github-aidev". Keep the Host line in sync with `git remote -v` in
+      # /opt/apps/latentimage-next-website; change one and the other must follow.
+      - printf 'Host github-aidev\n  HostName github.com\n  User git\n  IdentityFile ~/.ssh/id_ed25519\n  IdentitiesOnly yes\n' > ~/.ssh/config
+      - chmod 600 ~/.ssh/config
+      # Keyed on github.com, the resolved HostName, not on the alias.
+      - ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+      - cd /opt/apps/latentimage-next-website
+
+      # Everything below runs as root, so the pull rewrites .git/index,
+      # FETCH_HEAD, refs and any changed file as root inside a checkout the
+      # server's system user owns — after which that user's own `git` commands
+      # fail on permissions. Record the owner first and hand the tree back
+      # afterwards.
+      - OWNER=$(stat -c '%u:%g' .)
+      # --ff-only so a diverged production tree fails loudly, rather than root
+      # writing a merge commit into it.
+      - git pull --ff-only
+      - chown -R "$OWNER" .
+
+      # --wait gates on the Dockerfile's HEALTHCHECK, so a container that
+      # builds but crash-loops fails the step instead of reporting a green
+      # deploy. The two failure modes differ: if the BUILD fails, nothing is
+      # recreated and the old container keeps serving. If the build succeeds
+      # but the HEALTHCHECK does not, compose has already replaced the old
+      # container, so the site is down rather than still on the previous build.
+      # What --wait buys there is that the previous image is still on disk —
+      # the prune below is skipped, since Woodpecker runs these commands under
+      # `set -e` — so `docker tag` it back and `up -d` to roll back.
+      - docker compose up -d --build --wait --wait-timeout 120
+
+      # Drops the now-dangling previous images once the new ones are live, so
+      # months of rebuilds do not silently fill the VPS disk. Note this prunes
+      # dangling images host-wide, not only this app's — harmless on a
+      # dedicated box, worth knowing if the VPS hosts other stacks.
+      - docker image prune -f

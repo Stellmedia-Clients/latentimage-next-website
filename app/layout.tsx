@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Manrope } from "next/font/google";
 import "./globals.css";
+import SiteNav from "./components/SiteNav";
+import SiteFooter from "./components/SiteFooter";
 
 // Display serif — homepage statement, section headings, case-study titles only.
 const cormorant = Cormorant_Garamond({
@@ -20,15 +22,15 @@ const manrope = Manrope({
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.latentimage.in"),
   title: {
-    default: "LatentImage — Architectural & Hospitality Photography",
+    default: "LatentImage — Visual Storytelling for Architecture & Luxury Hospitality",
     template: "%s · LatentImage",
   },
   description:
-    "We create visual assets that help architecture, hospitality and real-estate brands sell their spaces. Photography, cinematic films and brand communication.",
+    "LATENTIMAGE partners with leading hospitality and real estate brands to transform spaces and experiences into compelling visual content — photography, films, digital content and immersive experiences.",
   openGraph: {
-    title: "LatentImage — Architectural & Hospitality Photography",
+    title: "LatentImage — Visual Storytelling for Architecture & Luxury Hospitality",
     description:
-      "We create visual assets that help architecture, hospitality and real-estate brands sell their spaces.",
+      "Photography, films, digital content and immersive experiences for leading hospitality and real estate brands.",
     type: "website",
     locale: "en_IN",
   },
@@ -46,7 +48,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${cormorant.variable} ${manrope.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-ivory text-charcoal">
-        {children}
+        <SiteNav />
+        <main id="top" className="flex-1">
+          {children}
+        </main>
+        <SiteFooter />
       </body>
     </html>
   );

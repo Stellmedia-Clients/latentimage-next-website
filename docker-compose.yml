@@ -1,0 +1,38 @@
+services:
+  web:
+    build: .
+    image: latentimage-next-website
+    restart: unless-stopped
+
+    # No `ports:` on purpose. Publishing 3000 on a VPS would expose the site over
+    # plain HTTP alongside the HTTPS proxy. Nginx Proxy Manager reaches this
+    # container by name over the shared `web-net` network below, so nothing needs
+    # to be bound on the host at all. To curl it from the server, go through the
+    # container: `docker compose exec web node -e "fetch('http://127.0.0.1:3000/')..."`.
+    #
+    # Fixed container name so the NPM proxy host can target
+    # `latentimage-next-website:3000` rather than the generated `<project>-web-1`,
+    # which changes with the checkout directory name.
+    container_name: latentimage-next-website
+
+    # No `environment:` and no `volumes:`. This is a static site — every byte it
+    # serves (copy from app/content.ts, the videos and posters in public/media)
+    # is baked into the image at build time, so there is no runtime secret to
+    # inject and no mutable state to preserve across a redeploy. Content changes
+    # ship as a commit and a rebuild, not as an edit to a running container.
+    #
+    # The corollary is worth stating: `docker compose down -v` is harmless here,
+    # and re-encoded media must be committed (see scripts/seed-media.mjs) or the
+    # next build will not pick it up.
+
+    networks:
+      - web-net
+
+# Created once on the server, and shared with the Nginx Proxy Manager container:
+#   docker network create web-net
+#   docker network connect web-net <npm-container>
+# Declared external so a `docker compose down` here never removes a network NPM
+# is still using.
+networks:
+  web-net:
+    external: true

@@ -22,63 +22,6 @@ export const studio = {
   socials: [] as { label: string; href: string }[],
 };
 
-export const philosophy = {
-  eyebrow: "Our Philosophy",
-  lead: "Every property has a story. Our role is to discover it, interpret it and translate it into images that do justice to the vision behind the space.",
-  paragraphs: [
-    "Architectural photography is much more than documenting a building. It is about understanding the architecture, the design, the materials, the light and, most importantly, the intent behind them.",
-    "We don't believe in drive-by photography. We believe in taking the time to understand a property, planning the right approach, waiting for the right light and paying attention to the details that make each space unique.",
-    "We believe our responsibility is to honour that vision — and create photographs that reflect the same passion, precision and dedication with which you created the property in the first place.",
-  ],
-};
-
-export const services = [
-  {
-    index: "01",
-    title: "Photography",
-    body: "Exteriors, interiors and detail work for architecture, hospitality and real estate. Distortion corrected, colour accurate, and finished for both web and print.",
-  },
-  {
-    index: "02",
-    title: "Cinematic Films",
-    body: "Promotional films and short-form video that carry the atmosphere of a space — the movement, the light and the way a property is actually used.",
-  },
-  {
-    index: "03",
-    title: "360° Virtual Tours",
-    body: "Navigable tours that let a client walk a property before they ever visit it, built to sit inside your own site rather than a third-party viewer.",
-  },
-  {
-    index: "04",
-    title: "Brand Communication",
-    body: "Advertising and campaign imagery, art direction and the visual system that holds a property's identity together across every channel.",
-  },
-];
-
-export const categories = [
-  "Exteriors",
-  "Interiors",
-  "People",
-  "Industrial",
-  "Food",
-  "Corporate",
-  "Monuments",
-  "Landscapes",
-  "Cityscapes",
-];
-
-/** Sectors served, per the existing site. These are sectors, not named clients. */
-export const sectors = [
-  "Architects",
-  "Real Estate",
-  "Hospitality",
-  "Industrial",
-  "Educational Institutes",
-  "Health Care",
-  "Interior Designers",
-  "Heritage Properties",
-];
-
 const U = "https://images.unsplash.com/photo-";
 const q = "?auto=format&fit=crop&w=1600&q=80";
 
@@ -95,51 +38,39 @@ export const work = [
 ];
 
 /**
- * The plate beside the philosophy copy. Stock, like `work` above, and built
- * from the same `${U}...${q}` template so `blurFor` still matches its LQIP and
- * the custom loader can rewrite w/q per breakpoint.
+ * Primary navigation. Real routes, not in-page anchors: the site is no longer
+ * a single scrolling page. The blurb is the description supplied for each item
+ * in the brief — surfaced in the mobile sheet, where there is room for it.
  */
-export const studioImage = {
-  src: `${U}1516035069371-29a1b244cc32${q}`,
-  alt: "Camera body and prime lenses laid out on a studio bench",
-};
-
-/**
- * The plate beside the opening statement. Distinct from `studioImage` above,
- * which belongs to the philosophy section further down the page: this one
- * carries "before anyone walks into a space, they have already seen it", so
- * it is an interior a visitor would meet first, not the kit that shot it.
- */
-export const statementImage = {
-  src: `${U}1502005229762-cf1b2da7c5d6${q}`,
-  alt: "Staircase and mezzanine in a bright residential interior",
-};
-
-/**
- * PLACEHOLDER FOOTAGE. These are the Pexels clips supplied for layout testing —
- * generic nature and city stock, not LatentImage's work. Titles describe what is
- * actually on screen rather than inventing projects. Swap both the files in
- * public/media/reels/ and these labels when the real films are ready.
- */
-export const reels = [
-  { src: "/media/reels/reel-1.mp4", poster: "/media/reels/reel-1.webp", title: "Riverside", place: "Landscapes" },
-  { src: "/media/reels/reel-2.mp4", poster: "/media/reels/reel-2.webp", title: "Texture Study", place: "Details" },
-  { src: "/media/reels/reel-3.mp4", poster: "/media/reels/reel-3.webp", title: "Grounds", place: "Landscapes" },
-  { src: "/media/reels/reel-4.mp4", poster: "/media/reels/reel-4.webp", title: "Glass & Sky", place: "Cityscapes" },
-  { src: "/media/reels/reel-5.mp4", poster: "/media/reels/reel-5.webp", title: "Winter Street", place: "Cityscapes" },
-  { src: "/media/reels/reel-1.mp4", poster: "/media/reels/reel-1.webp", title: "Riverside", place: "Landscapes" },
-  { src: "/media/reels/reel-2.mp4", poster: "/media/reels/reel-2.webp", title: "Texture Study", place: "Details" },
-  { src: "/media/reels/reel-3.mp4", poster: "/media/reels/reel-3.webp", title: "Grounds", place: "Landscapes" },
-  { src: "/media/reels/reel-4.mp4", poster: "/media/reels/reel-4.webp", title: "Glass & Sky", place: "Cityscapes" },
-  { src: "/media/reels/reel-5.mp4", poster: "/media/reels/reel-5.webp", title: "Winter Street", place: "Cityscapes" },
-];
-
 export const nav = [
-  { label: "Work", href: "#work" },
-  { label: "Films", href: "#films" },
-  { label: "Services", href: "#services" },
-  { label: "Studio", href: "#studio" },
-  { label: "Contact", href: "#contact" },
+  {
+    label: "Studio",
+    href: "/studio",
+    blurb: "The people, philosophy and perspective behind LATENTIMAGE.",
+  },
+  {
+    label: "Services",
+    href: "/services",
+    blurb:
+      "Photography, films, visual content, creative direction and immersive experiences.",
+  },
+  {
+    label: "Projects",
+    href: "/projects",
+    blurb:
+      "Selected visual stories created for architecture, hospitality, real estate and brands.",
+  },
+  {
+    label: "Journal",
+    href: "/journal",
+    blurb:
+      "Observations, ideas, stories and perspectives from the world of places and visual culture.",
+  },
+  {
+    label: "Enquire",
+    href: "/enquire",
+    blurb: "Tell us about your property, project or creative ambition.",
+  },
 ];
 
 /** Tiny inline LQIPs so remote images blur up instead of popping in. */
