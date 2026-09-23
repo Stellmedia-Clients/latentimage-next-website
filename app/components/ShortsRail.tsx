@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import ReactDOM from "react-dom";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
@@ -29,6 +30,64 @@ gsap.registerPlugin(useGSAP, ScrollTrigger);
 export default function ShortsRail() {
   const section = useRef<HTMLElement>(null);
   const track = useRef<HTMLDivElement>(null);
+
+  // The player's cost is mostly waiting: DNS, TLS, the API script, then the
+  // embed itself, all of which used to start only when a card first mounted.
+  // Opening the connections during render and fetching the API on mount moves
+  // roughly a second off the critical path without loading any video earlier.
+  ReactDOM.preconnect("https://www.youtube-nocookie.com");
+  ReactDOM.preconnect("https://www.youtube.com");
+  ReactDOM.preconnect("https://i.ytimg.com");
+
+  // How many cards have been allowed to start, left to right.
+  const [started, setStarted] = useState(0);
+
+  useEffect(() => {
+    loadYouTubeApi();
+  }, []);
+
+  // One observer for the whole rail, not one per card. During the pinned
+  // horizontal scrub a card slides into view with no warning, and a player that
+  // starts booting at that moment shows its thumbnail for a second or two while
+  // already on screen. Warming every card together on approach means the rail
+  // is playing by the time any of it is visible. The margin is lead time for
+  // the boot; it is deliberately short of mounting at page load, so a visitor
+  // who never scrolls this far never pays for seven players.
+  useEffect(() => {
+    const el = section.current;
+    if (!el) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    let tick: ReturnType<typeof setInterval> | undefined;
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        io.disconnect();
+        // Staggered, not all at once. Seven players booting simultaneously
+        // compete for the same connections and each one takes several seconds;
+        // released in order, the leftmost card — the one actually being looked
+        // at — is playing in about two, and the rest come up behind it well
+        // before the scrub reaches them.
+        setStarted(1);
+        tick = setInterval(() => {
+          setStarted((n) => {
+            if (n >= shorts.length) {
+              if (tick) clearInterval(tick);
+              return n;
+            }
+            return n + 1;
+          });
+        }, STAGGER_MS);
+      },
+      { rootMargin: "1200px 0px" },
+    );
+    io.observe(el);
+    return () => {
+      io.disconnect();
+      if (tick) clearInterval(tick);
+    };
+  }, []);
 
   useGSAP(
     () => {
@@ -87,7 +146,7 @@ export default function ShortsRail() {
           style={{ scrollSnapType: "x mandatory" }}
         >
           {shorts.map((id, i) => (
-            <Short key={id} id={id} index={i} />
+            <Short key={id} id={id} index={i} active={i < started} />
           ))}
 
           {/* Tail spacer so the last card can clear the right edge when pinned. */}
@@ -138,11 +197,8 @@ declare global {
  * <script>, and `onYouTubeIframeAPIReady` is a single global slot, so letting
  * every card write it means only the last one ever resolves.
  */
-/**
- * How long YouTube's chrome stays up after playback (re)starts before it fades
- * itself out — measured at ~3s, so the thumbnail is held a little past it.
- */
-const CHROME_HOLD_MS = 2400;
+/** Gap between releasing one card's player and the next. */
+const STAGGER_MS = 400;
 
 let apiReady: Promise<YTNamespace> | null = null;
 
@@ -165,44 +221,45 @@ function loadYouTubeApi(): Promise<YTNamespace> {
  * seven YouTube players on the page at once is megabytes of third-party script
  * for something the visitor can see at most two or three of.
  *
- * Three separate things conspire to show YouTube's own chrome over the video,
- * and each is dealt with in a different place below:
+ * YouTube draws its own chrome — title bar, centre bezel, More button — for
+ * about four seconds after playback starts, and again after every restart.
+ * Nothing in the embed API turns that off. Two of the three ways it shows up
+ * are avoidable and are avoided here:
  *
- *  1. A portrait embed gets the Shorts player — wordmark, Like/Share rail,
- *     centre play/pause flanked by prev/next. `controls=0` has no say over any
- *     of it. Fixed by giving the player a landscape box (see the host div).
- *  2. `loop=1&playlist=<id>` loops by *reloading* the video, which is a whole
- *     fresh player load and brings every bit of chrome back with it. Looping
- *     with `seekTo` instead keeps one continuous playback session.
- *  3. Even a seek re-enters PLAYING, and YouTube draws the title bar, the
- *     centre bezel and the More button on every (re)start, for ~3s. Nothing in
- *     the embed API turns that off, and the bezel is dead centre so no amount
- *     of cropping hides it. The thumbnail is therefore held over the player for
- *     CHROME_HOLD_MS after each start — at first play, and again at every loop.
+ *  1. A portrait embed gets the *Shorts* player, which is far worse: wordmark,
+ *     Like/Share rail, channel chip, and a centre play/pause flanked by
+ *     prev/next. `controls=0` has no say over any of it. Giving the player a
+ *     landscape box gets the ordinary player instead — see the host div.
+ *  2. `loop=1&playlist=<id>` loops by *reloading* the video, a whole fresh
+ *     player load that brings every bit of chrome back with it. Looping with
+ *     `seekTo` keeps one continuous playback session, which is both faster and
+ *     less of a flash.
  *
- * The thumbnail is not decoration — it is the mask for (3), and it is the whole
- * card under reduced motion. `hqdefault` is a 4:3 frame with the vertical video
+ * What is left — roughly four seconds of chrome at first play and at each loop
+ * — is a deliberate trade. It can only be hidden by holding the thumbnail over
+ * the player for that long, and being parked on a still for four seconds out of
+ * every thirty-three reads worse than the chrome does. The real fix is not a
+ * YouTube embed at all: a self-hosted MP4 in a native looping <video> has no
+ * chrome and no seam.
+ *
+ * The thumbnail covers the black first paint before playback starts, and is the
+ * whole card under reduced motion. `hqdefault` is a 4:3 frame with the vertical video
  * pillarboxed inside it; cropping that to 9:16 with object-cover lands exactly
  * on the video content, so the bars never appear.
  */
-function Short({ id, index }: { id: string; index: number }) {
+function Short({
+  id,
+  index,
+  active,
+}: {
+  id: string;
+  index: number;
+  active: boolean;
+}) {
   const ref = useRef<HTMLElement>(null);
   const host = useRef<HTMLDivElement>(null);
-  const [mounted, setMounted] = useState(false);
   const [live, setLive] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-    const io = new IntersectionObserver(
-      ([entry]) => setMounted(entry.isIntersecting),
-      { rootMargin: "300px" },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
+  const mounted = active;
 
   useEffect(() => {
     if (!mounted) return;
@@ -211,7 +268,6 @@ function Short({ id, index }: { id: string; index: number }) {
 
     let player: YTPlayer | undefined;
     let loop: ReturnType<typeof setInterval> | undefined;
-    let reveal: ReturnType<typeof setTimeout> | undefined;
     let restarting = false;
     let cancelled = false;
 
@@ -221,15 +277,9 @@ function Short({ id, index }: { id: string; index: number }) {
     const slot = document.createElement("div");
     el.appendChild(slot);
 
-    // Every restart puts the thumbnail back up first. Seeking re-enters PLAYING,
-    // and YouTube treats that as a fresh start: title bar, centre bezel and
-    // More button all draw again and take ~3s to fade. The poster goes up
-    // before the seek so there is never a frame where they are visible.
     const restart = () => {
       if (restarting || !player) return;
       restarting = true;
-      if (reveal) clearTimeout(reveal);
-      setLive(false);
       player.seekTo(0, true);
     };
 
@@ -275,8 +325,7 @@ function Short({ id, index }: { id: string; index: number }) {
             }
             if (event.data === YT.PlayerState.PLAYING) {
               restarting = false;
-              if (reveal) clearTimeout(reveal);
-              reveal = setTimeout(() => setLive(true), CHROME_HOLD_MS);
+              setLive(true);
             }
           },
         },
@@ -286,7 +335,6 @@ function Short({ id, index }: { id: string; index: number }) {
     return () => {
       cancelled = true;
       if (loop) clearInterval(loop);
-      if (reveal) clearTimeout(reveal);
       player?.destroy();
       el.replaceChildren();
       setLive(false);
@@ -328,7 +376,7 @@ function Short({ id, index }: { id: string; index: number }) {
         alt=""
         aria-hidden
         loading={index < 2 ? "eager" : "lazy"}
-        className={`pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity ${live ? "opacity-0 duration-700" : "opacity-100 duration-150"
+        className={`pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity ${live ? "opacity-0 duration-500" : "opacity-100 duration-150"
           }`}
       />
 

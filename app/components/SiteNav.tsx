@@ -47,7 +47,7 @@ export default function SiteNav() {
           }`}
         style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
       >
-        <div className="shell flex items-center justify-between py-4 md:py-5">
+        <div className="px-6 flex items-center justify-between py-4 md:py-5">
           <Link
             href="/"
             aria-label={`${studio.name} — home`}
@@ -59,13 +59,13 @@ export default function SiteNav() {
             <Image
               src="/logo-text.png"
               alt={studio.name}
-              width={600}
-              height={214}
+              width={700}
+              height={300}
               priority
               // Local PNG: the custom loader returns it verbatim and cannot
               // resize, so skip the pointless one-URL srcset.
               unoptimized
-              className={`h-4 w-auto transition-[filter] duration-500 md:h-5 ${solid || open ? "" : "invert"
+              className={`h-4 w-auto transition-[filter] duration-500 md:h-7 ${solid || open ? "" : "invert"
                 }`}
             />
           </Link>
@@ -91,17 +91,18 @@ export default function SiteNav() {
                 </Link>
               );
             })}
+            <Link
+              href="/enquire"
+              className={`type-caption hidden border px-5 py-2.5 transition-colors md:inline-block ${solid
+                ? "border-charcoal text-charcoal hover:bg-charcoal hover:text-ivory"
+                : "border-ivory/40 text-ivory hover:bg-ivory hover:text-charcoal"
+                }`}
+            >
+              Enquire
+            </Link>
           </nav>
 
-          <Link
-            href="/enquire"
-            className={`type-caption hidden border px-5 py-2.5 transition-colors md:inline-block ${solid
-              ? "border-charcoal text-charcoal hover:bg-charcoal hover:text-ivory"
-              : "border-ivory/40 text-ivory hover:bg-ivory hover:text-charcoal"
-              }`}
-          >
-            Enquire
-          </Link>
+
 
           <button
             type="button"

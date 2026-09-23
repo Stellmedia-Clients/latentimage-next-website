@@ -30,6 +30,23 @@ export default function WorkGallery() {
             className={item.span === "wide" ? "lg:col-span-2" : ""}
           >
             <figure className="group relative block w-full">
+              {/* Caption first: the category and the description read as a
+                  label for the frame below them. Kept deliberately quiet —
+                  caption-scale, sage, no serif — so it introduces the image
+                  instead of competing with it. `alt` is treated as optional
+                  here even though every current item has one.
+
+                  Grouped to the left rather than justified to both edges: a
+                  `wide` tile is two thirds of the grid, and pushing the two
+                  halves apart across it stopped them reading as one label. */}
+              <figcaption className="flex flex-wrap items-baseline gap-x-3 gap-y-1 pb-3">
+                <span className="type-caption text-bronze">{item.category}</span>
+                {item.alt && (
+                  <span className="text-sm font-light text-sage/90">
+                    {item.alt}
+                  </span>
+                )}
+              </figcaption>
               <button
                 type="button"
                 onClick={(e) => {
@@ -62,12 +79,6 @@ export default function WorkGallery() {
                   className="object-cover transition-transform duration-[1400ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.045]"
                 />
               </button>
-              <figcaption className="flex items-baseline justify-between gap-4 pt-4">
-                <span className="type-subheading">{item.alt}</span>
-                <span className="type-caption shrink-0 text-bronze">
-                  {item.category}
-                </span>
-              </figcaption>
             </figure>
           </Reveal>
         ))}

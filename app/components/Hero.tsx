@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { hero } from "../copy";
 import CtaLink from "./CtaLink";
+import StatsBand from "./StatsBand";
 
 /**
  * Full-bleed hero.
@@ -53,8 +54,13 @@ export default function Hero() {
     );
   }, [showVideo]);
 
+  // `min-h`, not a fixed `h`: the stats row now sits inside the hero, and on a
+  // 390px viewport the column (eyebrow + two headline lines + body + two
+  // buttons + the stats row) is taller than 100svh. With a fixed height and
+  // `justify-end` that overflow would have been clipped off the top, taking
+  // the headline with it.
   return (
-    <section className="relative h-[100svh] min-h-[34rem] w-full overflow-hidden bg-charcoal">
+    <section className="relative min-h-[100svh] w-full overflow-hidden ">
       {/* Poster — the LCP element. */}
       <Image
         src="/media/hero-poster.webp"
@@ -76,7 +82,7 @@ export default function Hero() {
           preload="auto"
           aria-hidden
           tabIndex={-1}
-          className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ${playing ? "opacity-100" : "opacity-0"
+          className={`absolute inset-0 h-full w-full object-cover  duration-1000 ${playing ? "opacity-100" : "opacity-0"
             }`}
         >
           <source src="/media/hero-720.mp4" type="video/mp4" media="(max-width: 768px)" />
@@ -91,23 +97,29 @@ export default function Hero() {
           the right gutter and would otherwise end over raw video. The vertical
           layer still carries the body copy and buttons at the bottom, and the
           flat tint is only a floor under both. */}
-      <div aria-hidden className="absolute inset-0 bg-charcoal/20" />
+      <div aria-hidden className="absolute inset-0 bg-black/20" />
       <div
         aria-hidden
-        className="absolute inset-0 bg-gradient-to-r from-charcoal/85 via-charcoal/60 to-charcoal/35"
+        className="absolute inset-0  bg-gradient-to-tr from-black/85 via-black/60 to-black/10"
       />
-      <div
+      {/* <div
         aria-hidden
-        className="absolute inset-0 bg-gradient-to-b from-charcoal/40 via-transparent to-charcoal/85"
-      />
+        className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/85"
+      /> */}
 
-      <div className="relative flex h-full flex-col justify-end">
+      <div className="relative flex min-h-[100svh] flex-col justify-end">
         {/* Deliberately not `shell`: that caps at 82rem and would box the
             headline in the middle of a wide screen. Same gutters, no cap, so
             the type runs the full width of the viewport. */}
-        <div className="w-full px-6 pb-16 md:px-10 md:pb-24">
+        <div className="w-full px-6 pb-4 md:px-10 md:pb-8">
           <div className="w-full">
-            <p className="type-caption mb-6 text-ivory/70">{hero.eyebrow}</p>
+            {/* Overridden on the element rather than in `type-caption`: the utility
+                is right everywhere else. The string is 60 characters, so it wraps
+                to two lines on a phone at any readable size — this just keeps
+                those two lines from reading as a heavy block. */}
+            <p className="type-caption mb-6 text-[0.66rem] tracking-[0.14em] text-ivory/70 md:mb-6 md:text-[0.8rem] md:tracking-[0.18em]">
+              {hero.eyebrow}
+            </p>
             {/* No `text-balance` — balancing picks the narrowest width that
                 preserves the line count, which is the opposite of spanning. */}
             {/* The montage peaks near-white in the headline band (a snowfield
@@ -118,25 +130,60 @@ export default function Hero() {
               className="type-hero text-left text-ivory"
               style={{ textShadow: "0 2px 28px rgba(0,0,0,0.5)" }}
             >
-              {hero.headline}
+              <span className="block">{hero.headline.lead}</span>
+              {/* A true gold, set literally rather than derived from the
+                  bronze token: bronze (#a58b68) is a desaturated mid-tone, and
+                  every mix of it toward ivory gets paler without getting more
+                  golden — the saturation is simply not in the source colour.
+                  This sits 8.2:1 on charcoal and holds its hue over the
+                  brightest frames of the montage (a white interior, a candle
+                  close-up), which is where a darker gold turned muddy.
+
+                  Deliberately not added to the @theme palette: the brand sheet
+                  does not carry a gold, and this is one headline, not a token
+                  the rest of the site should start reaching for. */}
+              <span className="block" style={{ color: "#dfb863" }}>
+                {hero.headline.accent}
+              </span>
             </h1>
             <p
-              className="type-body mt-7 max-w-4xl text-ivory/75"
-              style={{ textShadow: "0 1px 16px rgba(0,0,0,0.55)" }}
+              className="type-body mt-7 max-w-4xl leading-[1.6] text-ivory/75 md:leading-[1.75]"
+              style={{
+                textShadow: "0 1px 16px rgba(0,0,0,0.55)",
+                wordSpacing: "0.09em",
+              }}
             >
               {hero.body}
             </p>
 
-            <div className="mt-10 flex flex-wrap gap-4">
-              <CtaLink href={hero.primary.href} tone="light" variant="solid">
+            {/* Below `sm` the two labels cannot share a row (182px + 258px
+                against a 342px gutter), so they stacked at two different
+                widths and read as a mistake. Matching them full-width makes
+                the stack look chosen. Sizing stays with CtaLink — it is shared
+                with four other pages, and 49px is already a correct target. */}
+            <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4">
+              <CtaLink
+                href={hero.primary.href}
+                tone="light"
+                variant="solid"
+                className="w-full sm:w-auto"
+              >
                 {hero.primary.label}
               </CtaLink>
-              <CtaLink href={hero.secondary.href} tone="light" variant="outline">
+              <CtaLink
+                href={hero.secondary.href}
+                tone="light"
+                variant="outline"
+                className="w-full sm:w-auto"
+              >
                 {hero.secondary.label}
               </CtaLink>
             </div>
           </div>
         </div>
+
+        {/* The figures, over the film rather than in a band beneath it. */}
+        <StatsBand />
       </div>
     </section>
   );

@@ -38,13 +38,18 @@ export default function ProjectTabs() {
   return (
     <>
       {/* The strip scrolls rather than wraps on narrow viewports — four labels
-          stacked into two rows stop reading as one set of choices. */}
+          stacked into two rows stop reading as one set of choices.
+
+          `justify-center` is safe alongside the scroll: with `w-max min-w-full`
+          the row is only wider than its box when the labels overflow, and at
+          that point there is no free space to distribute, so centring cannot
+          push the first label out of reach to the left. */}
       <div className="no-scrollbar overflow-x-auto border-y border-stone">
         <div
           role="tablist"
           aria-label="Project galleries"
           onKeyDown={onKeyDown}
-          className="shell flex w-max min-w-full gap-8 md:gap-10"
+          className="shell flex w-max min-w-full justify-center gap-8 md:gap-10"
         >
           {galleries.map((gallery, i) => (
             <button
@@ -59,16 +64,14 @@ export default function ProjectTabs() {
               aria-controls={`panel-${gallery.slug}`}
               tabIndex={active === i ? 0 : -1}
               onClick={() => setActive(i)}
-              className={`type-caption relative whitespace-nowrap py-5 transition-colors duration-300 ${
-                active === i ? "text-charcoal" : "text-sage hover:text-charcoal"
-              }`}
+              className={`type-caption relative whitespace-nowrap py-5 transition-colors duration-300 ${active === i ? "text-charcoal" : "text-sage hover:text-charcoal"
+                }`}
             >
               {gallery.label}
               <span
                 aria-hidden
-                className={`absolute inset-x-0 bottom-0 h-px transition-colors duration-300 ${
-                  active === i ? "bg-bronze" : "bg-transparent"
-                }`}
+                className={`absolute inset-x-0 bottom-0 h-px transition-colors duration-300 ${active === i ? "bg-bronze" : "bg-transparent"
+                  }`}
               />
             </button>
           ))}

@@ -79,16 +79,19 @@ body {
  * because it is meant to reach both gutters — Hero.tsx drops the 82rem `shell`
  * cap for it. `type-display` stays as the general oversized-serif utility.
  *
- * 5.5vw is picked, not rounded to: the wrap point moves with the size, so fill
- * is not monotonic. This value holds two lines at 97%/97%/95% of the gutter
- * width at 1280/1440/1920. Below about 4.4vw the headline collapses onto one
- * line. The floor is what mobile actually renders (5.5vw is under it below a
- * ~600px viewport), so phones are unaffected by changes to the vw term.
+ * The headline is now broken into two fixed lines in the markup, so this size
+ * no longer has to produce a wrap — the vw term only sets the scale. It has
+ * NOT been retuned for that change: at 1440 the longer line ("Architecture
+ * and Luxury Hospitality") measures 1061px of the 1360px gutter, or 78%, so
+ * the type no longer reaches the gutters the way the single wrapped block did.
+ * Raising the term would close that gap but also pushes the mobile fold, since
+ * the floor is what phones actually render (5.5vw is under it below a ~600px
+ * viewport) — left alone deliberately.
  */
 @utility type-hero {
   font-family: var(--font-serif);
   font-weight: 300;
-  font-size: clamp(2.05rem, 5.5vw, 8rem);
+  font-size: clamp(2.05rem, 4.5vw, 8rem);
   line-height: 1.02;
   letter-spacing: -0.025em;
 }
@@ -123,8 +126,8 @@ body {
 /* Eyebrows, metadata, captions, nav. */
 @utility type-caption {
   font-family: var(--font-sans);
-  font-weight: 500;
-  font-size: 0.6875rem;
+  font-weight: 600;
+  font-size: 0.78rem;
   line-height: 1.4;
   letter-spacing: 0.18em;
   text-transform: uppercase;

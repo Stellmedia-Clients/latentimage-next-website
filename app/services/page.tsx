@@ -68,27 +68,7 @@ export default function Services() {
         </div>
       </section>
 
-      <section className="section-y bg-ivory">
-        <div className="shell">
-          <Reveal>
-            <p className="type-caption mb-6 text-bronze">Enquire</p>
-            <h2 className="type-heading max-w-3xl text-balance">
-              Not sure which of these you need?
-            </h2>
-            <p className="type-body mt-8 max-w-xl text-sage">
-              Tell us about the property, the audience and what the content has
-              to achieve — we will propose the right combination.
-            </p>
-          </Reveal>
-          <Reveal delay={120}>
-            <div className="mt-12 border-t border-stone pt-10">
-              <CtaLink href="/enquire" variant="solid">
-                Start a Conversation
-              </CtaLink>
-            </div>
-          </Reveal>
-        </div>
-      </section>
+
     </>
   );
 }

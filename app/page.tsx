@@ -1,6 +1,5 @@
 import Hero from "./components/Hero";
 import Reveal from "./components/Reveal";
-import StatsBand from "./components/StatsBand";
 import Accordion from "./components/Accordion";
 import Marquee from "./components/Marquee";
 import ShortsRail from "./components/ShortsRail";
@@ -9,8 +8,9 @@ import CtaLink from "./components/CtaLink";
 import { brands, whatWeDo, whyBrands } from "./copy";
 
 /**
- * Home. Section order follows the brief: hero, figures, what we do, the client
- * list, short-form work, then the case for working with the studio.
+ * Home. Section order follows the brief: hero (which now carries the figures
+ * over the film), what we do, the client list, short-form work, then the case
+ * for working with the studio.
  *
  * Accordion bodies are built here rather than in copy.ts because they are
  * markup, not prose — copy.ts is a .ts module and holds no JSX.
@@ -57,7 +57,6 @@ export default function Home() {
   return (
     <>
       <Hero />
-      <StatsBand />
 
       {/* ── What we do ───────────────────────────────────────────────── */}
       <section className="section-y relative overflow-hidden bg-greige">
@@ -129,24 +128,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Enquire ──────────────────────────────────────────────────── */}
-      <section className="section-y bg-greige">
-        <div className="shell">
-          <Reveal>
-            <p className="type-caption mb-6 text-bronze">Enquire</p>
-            <h2 className="type-heading max-w-3xl text-balance">
-              Tell us about your property, project or creative ambition.
-            </h2>
-          </Reveal>
-          <Reveal delay={120}>
-            <div className="mt-12 border-t border-stone pt-10">
-              <CtaLink href="/enquire" variant="solid">
-                Start a Conversation
-              </CtaLink>
-            </div>
-          </Reveal>
-        </div>
-      </section>
+
     </>
   );
 }

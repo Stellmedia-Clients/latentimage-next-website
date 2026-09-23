@@ -190,27 +190,7 @@ export default function Studio() {
         </div>
       </section>
 
-      {/* ── Closing ──────────────────────────────────────────────────── */}
-      <section className="section-y bg-ivory">
-        <div className="shell">
-          <Reveal>
-            <h2 className="type-heading max-w-3xl text-balance">
-              {s.closing.title}
-            </h2>
-            <p className="type-body mt-8 max-w-2xl text-sage">{s.closing.body}</p>
-          </Reveal>
-          <Reveal delay={120}>
-            <div className="mt-12 flex flex-wrap items-center gap-4 border-t border-stone pt-10">
-              <CtaLink href={s.closing.primary.href} variant="solid">
-                {s.closing.primary.label}
-              </CtaLink>
-              <CtaLink href={s.closing.secondary.href}>
-                {s.closing.secondary.label}
-              </CtaLink>
-            </div>
-          </Reveal>
-        </div>
-      </section>
+
     </>
   );
 }

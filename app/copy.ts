@@ -17,23 +17,23 @@
 export const hero = {
   eyebrow: "Photography • Films • Digital Content • Immersive Experiences",
   /**
-   * The escaped characters are non-breaking spaces. They bind the headline into
-   * three wrappable units — "Visual" / "Storytelling" / "for Architecture" /
-   * "& Luxury Hospitality" — so no line can ever end up holding a single word.
+   * Set as two fixed lines: the statement, then the sectors in bronze. The
+   * break after "for" is part of the design, so it is structural (two block
+   * spans) rather than left to the greedy line-breaker.
    *
-   * Unbound, the greedy break stranded "Hospitality" alone on desktop; binding
-   * only that phrase fixed desktop but moved the problem to phones, where
-   * "Architecture" was left on a line of its own at every width from 320 to
-   * 430. Binding "for Architecture" too resolves both: desktop still breaks
-   * 4 words / 3 at 1280–1920, phones break 2 / 2 / 3.
+   * The escaped characters are non-breaking spaces, and now only guard the
+   * wrap *within* each line on narrow viewports. "Storytelling for" is bound
+   * so line one never strands "for" on its own at the 2.05rem floor, where the
+   * string is within ~10px of a 390px gutter. "Luxury Hospitality" is bound so
+   * line two breaks "Architecture and" / "Luxury Hospitality" on phones rather
+   * than leaving "Hospitality" alone, which is what the unbound string did.
    *
-   * The break lands on the conjunction, which is the natural reading break and
-   * within 32px of the most balanced split available (1021/620 at 1440, versus
-   * a theoretical best of 636/1005 that would have split "Storytelling for"
-   * from "Architecture").
+   * Desktop holds both lines intact from 1024 up.
    */
-  headline:
-    "Visual Storytelling for\u00a0Architecture &\u00a0Luxury\u00a0Hospitality",
+  headline: {
+    lead: "Visual Storytelling\u00a0for",
+    accent: "Architecture and Luxury\u00a0Hospitality",
+  },
   body: "LATENTIMAGE partners with leading hospitality and real estate brands to transform spaces and experiences into compelling visual content that elevates perception, engages audiences and delivers business impact.",
   primary: { label: "See Our Work", href: "/projects" },
   secondary: { label: "Start a Conversation", href: "/enquire" },
@@ -54,7 +54,7 @@ export const stats: Stat[] = [
   { kind: "count", value: 20, suffix: "+", label: "Years" },
   { kind: "count", value: 1000, suffix: "+", label: "Projects" },
   { kind: "count", value: 100, suffix: "+", label: "Brands" },
-  { kind: "text", value: "Point of View", label: "One Distinctive" },
+  { kind: "text", value: "One Distinctive", label: "Point of View" },
 ];
 
 /* ── Home: what we do ────────────────────────────────────────────────── */
